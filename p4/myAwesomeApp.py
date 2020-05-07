@@ -137,13 +137,43 @@ class cocktail():
         #Write new separated audios
         wavfile.write('{}/seperated1.wav'.format(folderName),self.mic1Fs1,S_[:,0])
         wavfile.write('{}/seperated2.wav'.format(folderName),self.mic2Fs2,S_[:,1])    
+
+
+
+#------------IGNORE / DOESN"T WORK FOR NOW /  --------------# 
+class spleeter(): # this method uses a tool that runs through the command line 
+    def __init__(self,path:str):
+        self.path = path
+
+        self.useSpleeter()
+
+    def setUpSpleeter(self):
+        os.system("echo installing ffmpeg")
+        os.system("apt install ffmpeg") # try "sudo apt install ffmpeg" if produced an error
+        os.system("echo installed ffmpeg")
+        os.system("echo installing spleeter")
+        os.system("pip install spleeter")
+        os.system("echo installed spleeter")
+   
+    def getsongName(self):
+        name  = self.path.split('.')
+        filename = name[0]
+        print(filename)
+        return filename
+   
+    def useSpleeter(self):    
+        folderName = self.getsongName()
+        os.system("mkdir {}".format(folderName))
+        os.system("echo made new directory")
+        os.system("echo using spleeter")
+        os.system("spleeter separate -i {} -o {}/".format(self.path,folderName))
+        os.system("echo Done")
+# -------------------------------------------------------------#
+
+# song = vocalSeparator("Berlin_BellaCiao_22.mp3")
+
 # song = vocalSeparator("Sia_Alive_05.mp3")
 
-class spleeter():
-     def __init__(self,path:str):
-         self.path = path
-
-
-song = vocalSeparator("Berlin_BellaCiao_22.mp3")
-
 # cocktailAudio = cocktail("sss1.wav","sss2.wav")
+
+###spleeter = spleeter("Berlin_BellaCiao_22.mp3")
