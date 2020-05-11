@@ -34,12 +34,20 @@ class quantTable:
     data: list 
 
 
+@dataclass
+class huffmanTable:
+    symbols: list #  8-bit symol  
+    
+
 
 class jpeg():
     def __init__(self,path:str):
         self.path = path
         self.jpgDataList = None
         self.quantTables = []  
+        self.restartInterval = 0
+        self.huffmanAcTables = [-1]*(4)
+        self.huffmanDcTables = [-1]*(4)
 
     def readJpeg(self):
             # Read the jpeg file into hex 
@@ -60,9 +68,9 @@ class jpeg():
         indices = []
         for i, x in enumerate(self.jpgDataList):
             if i < len(self.jpgDataList)-1:
-                if (x + self.jpgDataList[i+1]== marker) and i % 2 ==0:
+                if (x + self.jpgDataList[i+1]== marker) :
                     indices.append(i+1)
-        # print(indices)
+        print(indices)
         return indices
    
     def readLength(self,twoBytes:str):
@@ -77,6 +85,33 @@ class jpeg():
         else:
             return -99,-99    
         
+    def readHuffman(self):
+        markerIndcies = self.findMarker2('ffc4')
+
+        for i in range(len(markerIndcies)):
+            tableLoc = markerIndcies[i]  
+            length = self.jpgDataList[tableLoc+1]+self.jpgDataList[tableLoc+2] 
+            length = self.readLength(length) - 2 # length without the 2byts of length themself
+            current = tableLoc + 3 # at the fisrt tableinfo byte 
+            while(length > 0 ):
+                tableMode,tableId = list(map(lambda x: int(x,16),self.jpgDataList[current]))
+                symbols = []
+                symbolsIndex = current + 17
+                
+                subtableLength = 0
+                for i in range(16):
+                    current += 1
+                    subtableLength += int(self.jpgDataList[current],16)
+                    symbols.append(self.jpgDataList[symbolsIndex:int(self.jpgDataList[current],16)+symbolsIndex])
+                    symbolsIndex += int(self.jpgDataList[current],16)
+                
+                if(tableMode == 0):# DC table
+                    self.huffmanDcTables[tableId] = symbols
+                else:
+                    self.huffmanAcTables[tableId] = symbols
+                length = length - 17 - subtableLength
+        
+    
     def prettyDisplay(self):
         print("====== Quantization Table 0 ====== ")
         for i in range(8):
@@ -85,7 +120,39 @@ class jpeg():
         for i in range(8):
             print(file.quantTables[0].data[1][i*8:(i+1)*8])
         
+        
+        print("====== AC Huffman tables  ======")
+        for i in range(len(self.huffmanAcTables)):
+            print ('=== Table ID:',i,' ===' )
+            if self.huffmanAcTables[i] == -1 :
+                print("Table ({}) Not found".format(i))
+            else:    
+                for j in range(len(self.huffmanAcTables[i])):
+                     
+                    print(self.huffmanAcTables[i][j])
+                
+        
+        
+        print("====== DC Huffman tables  ======")
+        for i in range(len(self.huffmanDcTables)):
+            print ('=== Table ID:',i,' ===' )
+            if self.huffmanDcTables[i] == -1 :
+                print("Table ({}) Not found".format(i))
+            else:    
+                for j in range(len(self.huffmanDcTables[i])):
+                    
+                    print(self.huffmanDcTables[i][j])
+                
+        
 
+        
+    def readRestartInterval(self):
+        markerIndex = self.findMarker2('ffdd')
+        length=  self.jpgDataList[markerIndex+1]+self.jpgDataList[markerIndex+2] 
+        length = self.readLength(length)
+        if ((length - 4) == 0):
+            RI = self.jpgDataList[markerIndex+3]+self.jpgDataList[markerIndex+4]
+            self.restartInterval = self.readLength(RI)
 
     def readQuanTables(self):
         markerIndcies = self.findMarker2('ffdb')
@@ -132,16 +199,23 @@ class jpeg():
     #     for i in     
     #     self.quantTables    
 
-file = jpeg("peter2.jpeg")
-file.readJpeg()
+file = jpeg("peter2-progressive.jpeg")
 
+
+file.readJpeg()
+file.findMarker2('ffc4')
 file.readQuanTables()
+file.readHuffman()
+
+# print("DC huffman",file.huffmanDcTables)
+# print("AC huffman",file.huffmanAcTables)
+
 # print(file.quantTables)
 
 
 file.prettyDisplay()
 
-    
+
 # print(file.jpgDataList[0:200])
 # file.findMarker2('ffdb')
 # print(file.readLength('09f8'))
@@ -149,6 +223,12 @@ file.prettyDisplay()
 # print((file.jpgDataList[4] << 8)+file.jpgDataList[5])
 img = Image.open("peter2.jpeg")
 tables = img.quantization
-print(tables)
-
+# print(tables)
+# var1,var2 = list('01')
+# print(var1,var2)
+# print(type(var1))
 # print(list(range(64)))
+# lst = []
+# lst2=[1,2,3]
+# lst.append(lst2[0:2])
+# print(lst)
