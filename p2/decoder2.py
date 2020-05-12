@@ -156,9 +156,9 @@ class jpeg():
                 
     def produceProg(self):
         scans = self.findMarker2('ffda')
-        for i in range(len(scans)):
-            file = open(self.path, "rb").read(scans[i]-1)
-            jpegFile = open('scan-{}.jpeg'.format(i),"wb")
+        for i in range(len(scans)-1):
+            file = open(self.path, "rb").read(scans[i+1]-1)
+            jpegFile = open('output/scan-{}.jpeg'.format(i),"wb")
             jpegFile.write(file)
             jpegFile.write(b'\xff\xd9')
             jpegFile.close()
@@ -217,7 +217,7 @@ class jpeg():
     #     for i in     
     #     self.quantTables    
 
-file = jpeg("peter2.jpeg")
+# file = jpeg("pics/peter2-progressive.jpeg")
 
 
 # file.readJpeg()
