@@ -14,10 +14,3 @@
 ![app window](screenshots/5.png)
 ## example 2 output
 ![app window](screenshots/6.png)
-# decoding details in terminal
-## Zig-Zaged quantization tables
-![app window](screenshots/7.png)
-## huffman  DC & AC tables
-![app window](screenshots/8.png)
-## huffman tables continued
-![app window](screenshots/9.png)
